@@ -1,0 +1,14 @@
+begin;
+create extension if not exists pgtap with schema extensions;
+set local search_path=public,extensions;
+select plan(4);
+set local role anon;
+select throws_ok($$select public.request_redata_day(current_date)$$,'42501',null,'anónimo no inicia ingesta');
+reset role;
+set local role authenticated;
+select throws_ok($$select public.read_redata_response(1)$$,'42501',null,'usuario no lee respuestas de red');
+reset role;
+set local role service_role;
+select throws_ok($$select public.request_redata_day(current_date+20)$$,null,null,'servicio no solicita fechas fuera de rango');
+select is(public.read_redata_response(-1),null::jsonb,'respuesta ajena o ausente no se revela');
+reset role;select * from finish();rollback;

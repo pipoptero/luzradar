@@ -1,0 +1,2 @@
+const dates=['2026-10-27','2026-10-28','2026-10-25','2026-03-29','2026-11-06'];
+for (const date of dates) { try {const response=await fetch(`https://api.esios.ree.es/archives/70/download_json?locale=es&date=${date}`);const data=await response.json();const rows=Array.isArray(data.PVPC)?data.PVPC:[];console.log(JSON.stringify({date,status:response.status,count:rows.length,first:rows[0]?.Hora,last:rows.at(-1)?.Hora,message:data.message}));}catch(e){console.error(date,String(e));process.exitCode=1;} }

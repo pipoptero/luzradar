@@ -1,0 +1,2 @@
+import {scheduleEvents} from '../server/scheduler';
+const start=Date.parse('2026-10-25T00:00:00Z');const intervals=Array.from({length:3},(_,i)=>({start:new Date(start+i*3600000).toISOString(),end:new Date(start+(i+1)*3600000).toISOString(),price:['0.12','0.08','0.14'][i]}));const events=scheduleEvents('2026-10-25',intervals,[{userId:'demo',householdId:'demo',channel:'push',enabled:true,summary:true,appliances:[]}],start-3600000);console.log(`SIMULACIÓN: ${events.length} eventos; no se contactó a proveedores ni se escribieron datos.`);

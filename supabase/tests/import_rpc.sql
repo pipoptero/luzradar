@@ -1,0 +1,23 @@
+begin;
+create extension if not exists pgtap with schema extensions;
+-- Aislamiento transaccional: la eliminación se revierte al terminar el test.
+delete from public.pvpc_days;
+set local search_path=public,extensions;
+select plan(6);
+insert into auth.users(id,email,email_confirmed_at) values ('00000000-0000-0000-0000-000000000081','import@example.invalid',now());
+select set_config('request.jwt.claim.sub','00000000-0000-0000-0000-000000000081',true);
+set local role authenticated;
+do $$begin perform set_config('test.import_house',public.create_household('Importación')::text,true);end$$;
+insert into public.appliances(id,household_id,name,duration_minutes,energy_kwh) values('00000000-0000-0000-0000-000000000082',current_setting('test.import_house')::uuid,'Lavadora',60,2);
+reset role;
+insert into public.pvpc_days(id,date_local,source) values('00000000-0000-0000-0000-000000000083','2026-01-02','REData');
+insert into public.pvpc_intervals(day_id,start_utc,end_utc,price_eur_kwh) select '00000000-0000-0000-0000-000000000083',t,t+interval '1 hour',0.15 from generate_series(date_trunc('hour',now())-interval '3 hours',date_trunc('hour',now())+interval '5 hours',interval '1 hour') t;
+set local role authenticated;
+do $$begin perform set_config('test.import_start',(now()-interval '2 hours')::text,true);end$$;
+select lives_ok($$select public.import_official_plan(current_setting('test.import_house')::uuid,'00000000-0000-0000-0000-000000000082','00000000-0000-0000-0000-000000000084',current_setting('test.import_start')::timestamptz,current_setting('test.import_start')::timestamptz)$$,'importa y recalcula');
+select is((select (snapshot->>'actualCost')::numeric from public.plans where id='00000000-0000-0000-0000-000000000084'),0.3::numeric,'coste importado no procede del cliente');
+select ok((select snapshot->'baseline'='null'::jsonb from public.plans where id='00000000-0000-0000-0000-000000000084'),'no inventa baseline');
+select lives_ok($$select public.import_official_plan(current_setting('test.import_house')::uuid,'00000000-0000-0000-0000-000000000082','00000000-0000-0000-0000-000000000084',current_setting('test.import_start')::timestamptz,current_setting('test.import_start')::timestamptz)$$,'importación repetida idempotente');
+select is((select count(*)::integer from public.plans),1,'una fila por plan importado');
+select throws_ok($$select public.import_official_plan(current_setting('test.import_house')::uuid,'00000000-0000-0000-0000-000000000082',gen_random_uuid(),now()-interval '5 minutes',now()-interval '5 minutes')$$,null,null,'importación no confirma ciclo sin terminar');
+reset role;select * from finish();rollback;

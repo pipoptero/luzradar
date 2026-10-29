@@ -1,0 +1,289 @@
+{
+  "schemaVersion": 1,
+  "purpose": "Contrato vivo. Codex debe cambiar statuses solo con evidencia verificable.",
+  "statusAllowed": [
+    "NOT_EVALUATED",
+    "PASS_REAL",
+    "PASS_LOCAL",
+    "PASS_SIMULADO",
+    "BLOCKED_EXTERNAL",
+    "FAIL"
+  ],
+  "requirements": [
+    {
+      "id": "PVPC01",
+      "title": "REData real contrastado con ESIOS y datos actuales",
+      "status": "PASS_REAL",
+      "implementation_paths": [
+        "src/data/source.ts"
+      ],
+      "test_command": "npm run doctor",
+      "evidence_path": "docs/RESULTADO_FINAL_INTEGRACION.md",
+      "notes": "REData HTTP 200 y contraste ESIOS del 28/10 documentado; no demuestra disponibilidad futura."
+    },
+    {
+      "id": "PVPC02",
+      "title": "Hoy/mañana, validación completa, stale/ausencia",
+      "status": "PASS_LOCAL",
+      "implementation_paths": [
+        "src/data/source.ts"
+      ],
+      "test_command": "npm run test; npm run e2e",
+      "evidence_path": "docs/RESULTADO_FINAL_INTEGRACION.md",
+      "notes": "D+1, caché y errores cubiertos con fixture y red simulada."
+    },
+    {
+      "id": "TIME01",
+      "title": "DST 23/24/25 y doble 02:00 offsets",
+      "status": "PASS_LOCAL",
+      "implementation_paths": [
+        "tests/source.test.ts"
+      ],
+      "test_command": "npm run test",
+      "evidence_path": "docs/RESULTADO_FINAL_INTEGRACION.md",
+      "notes": "Fixtures oficiales 23/24/25 y doble 02:00."
+    },
+    {
+      "id": "CALC01",
+      "title": "Coste por solapes y duración",
+      "status": "PASS_LOCAL",
+      "implementation_paths": [
+        "src/domain/core.ts"
+      ],
+      "test_command": "npm run verify:db; npm run verify:vertical",
+      "evidence_path": "docs/RESULTADO_FINAL_INTEGRACION.md",
+      "notes": "Coste calculado en servidor con precios oficiales persistidos; solapes y manipulación probados localmente."
+    },
+    {
+      "id": "CALC02",
+      "title": "Próxima mejor franja y alertas clima",
+      "status": "PASS_LOCAL",
+      "implementation_paths": [
+        "server/scheduler.ts"
+      ],
+      "test_command": "npm run test; npm run verify:backend",
+      "evidence_path": "docs/RESULTADO_FINAL_INTEGRACION.md",
+      "notes": "Optimización futura sin vetos, cruce de medianoche con cobertura y deduplicación del primer umbral cubiertos; avisos en vivo se evalúan en JOB03."
+    },
+    {
+      "id": "UI01",
+      "title": "Responsive accesible iPhone/escritorio",
+      "status": "PASS_LOCAL",
+      "implementation_paths": [
+        "src/App.tsx"
+      ],
+      "test_command": "npm run e2e",
+      "evidence_path": "docs/RESULTADO_FINAL_INTEGRACION.md",
+      "notes": "axe WCAG 2 A/AA y 2.1 AA en cuatro pantallas, Chromium/WebKit 390 y escritorio, teclado básico; VoiceOver físico pendiente."
+    },
+    {
+      "id": "DATA01",
+      "title": "Aislamiento DEMO REAL_LOCAL ONLINE",
+      "status": "PASS_LOCAL",
+      "implementation_paths": [
+        "src/data/import-real.ts"
+      ],
+      "test_command": "npm run verify:ui-vertical; npm run test",
+      "evidence_path": "docs/RESULTADO_FINAL_INTEGRACION.md",
+      "notes": "Tres modos separados: la importación explícita incorpora únicamente el plan real local, excluye DEMO y recalcula importes."
+    },
+    {
+      "id": "AUTH01",
+      "title": "Supabase Auth login/logout real",
+      "status": "PASS_LOCAL",
+      "implementation_paths": [
+        "src/components-family.tsx"
+      ],
+      "test_command": "npm run verify:vertical; npm run verify:recovery",
+      "evidence_path": "docs/RESULTADO_FINAL_INTEGRACION.md",
+      "notes": "Auth/API real local y recuperación desde navegador con Mailpit local; OAuth y proveedor alojados aún no verificados."
+    },
+    {
+      "id": "HOME01",
+      "title": "Dos miembros mismo hogar sincronizados",
+      "status": "PASS_LOCAL",
+      "implementation_paths": [
+        "src/components-family.tsx"
+      ],
+      "test_command": "npm run verify:ui-vertical",
+      "evidence_path": "docs/RESULTADO_FINAL_INTEGRACION.md",
+      "notes": "A invita a B; comparten aparato y confirmación, C aislado, con navegador y Supabase Local."
+    },
+    {
+      "id": "HOME02",
+      "title": "Invitación opaca expirable y permisos",
+      "status": "PASS_LOCAL",
+      "implementation_paths": [
+        "supabase/migrations/202610280004_family_integration.sql"
+      ],
+      "test_command": "npm run verify:db; npm run verify:vertical",
+      "evidence_path": "docs/RESULTADO_FINAL_INTEGRACION.md",
+      "notes": "Invitaciones de un uso, caducidad y permisos sobre PostgreSQL y Auth/API local."
+    },
+    {
+      "id": "SEC01",
+      "title": "Aislamiento RLS de dos hogares",
+      "status": "PASS_LOCAL",
+      "implementation_paths": [
+        "supabase/tests/family_rls.sql"
+      ],
+      "test_command": "npm run verify:db; npm run verify:vertical",
+      "evidence_path": "docs/RESULTADO_FINAL_INTEGRACION.md",
+      "notes": "PostgreSQL local comprueba RLS y permisos de todas las tablas; C no accede ni escribe H1 y las RPC críticas rechazan sus intentos."
+    },
+    {
+      "id": "SEC02",
+      "title": "Grants RPC y escalada bloqueada",
+      "status": "PASS_LOCAL",
+      "implementation_paths": [
+        "supabase/tests/access_rls.sql"
+      ],
+      "test_command": "npm run verify:db; npm run verify:vertical",
+      "evidence_path": "docs/RESULTADO_FINAL_INTEGRACION.md",
+      "notes": "Grants de tablas y funciones privilegiadas revisados en catálogo, anónimo bloqueado, suplantación y escalada rechazadas; sin prueba alojada."
+    },
+    {
+      "id": "SYNC01",
+      "title": "Confirmaciones y migración local idempotente",
+      "status": "PASS_LOCAL",
+      "implementation_paths": [
+        "src/data/family.ts"
+      ],
+      "test_command": "npm run verify:ui-vertical; npm run verify:db",
+      "evidence_path": "docs/RESULTADO_FINAL_INTEGRACION.md",
+      "notes": "A/B sincronizan confirmación y anulación; importación real repetida es idempotente y no migra DEMO."
+    },
+    {
+      "id": "SAV01",
+      "title": "Ahorro mensual compartido estimado",
+      "status": "PASS_LOCAL",
+      "implementation_paths": [
+        "src/components-family.tsx"
+      ],
+      "test_command": "npm run verify:ui-vertical; npm run verify:db",
+      "evidence_path": "docs/RESULTADO_FINAL_INTEGRACION.md",
+      "notes": "Una confirmación de B aparece en el ahorro mensual compartido de A; el baseline y costes se calculan en servidor y se identifican como estimados."
+    },
+    {
+      "id": "JOB01",
+      "title": "Cola persistente lease claim retry",
+      "status": "PASS_LOCAL",
+      "implementation_paths": [
+        "supabase/tests/queue_prices.sql"
+      ],
+      "test_command": "npm run verify:concurrency; npm run verify:jobs; npm run verify:cron",
+      "evidence_path": "docs/RESULTADO_FINAL_INTEGRACION.md",
+      "notes": "Claim concurrente y lease reales; ventana de reintento y límite de cinco intentos tras caídas verificados en PostgreSQL, con cron/Edge local."
+    },
+    {
+      "id": "JOB02",
+      "title": "Resumen D+1 único por usuario/canal",
+      "status": "PASS_LOCAL",
+      "implementation_paths": [
+        "server/scheduler.ts"
+      ],
+      "test_command": "npm run verify:jobs",
+      "evidence_path": "docs/RESULTADO_FINAL_INTEGRACION.md",
+      "notes": "Dos ejecuciones Edge con fuente oficial crean un resumen D+1 único y respetan opt-out; sin destinatarios ni envíos reales."
+    },
+    {
+      "id": "JOB03",
+      "title": "Aviso aparato y climatización con revocación",
+      "status": "PASS_LOCAL",
+      "implementation_paths": [
+        "server/worker.ts"
+      ],
+      "test_command": "npm run verify:jobs; npm run verify:corrections; npm run verify:concurrency",
+      "evidence_path": "docs/RESULTADO_FINAL_INTEGRACION.md",
+      "notes": "Edge real local reprograma, evalúa umbral y revocación; serie sintética transaccional verifica corrección de costes y movimiento sin duplicar con el mismo programador. Sin entrega real."
+    },
+    {
+      "id": "TG01",
+      "title": "Telegram enlace seguro webhook y pruebas",
+      "status": "PASS_LOCAL",
+      "implementation_paths": [
+        "server/telegram-webhook.ts"
+      ],
+      "test_command": "npm run verify:vertical; npm run verify:db",
+      "evidence_path": "docs/RESULTADO_FINAL_INTEGRACION.md",
+      "notes": "Webhook Edge local comprueba secreto y atribución por nonce; sin envío real."
+    },
+    {
+      "id": "TG02",
+      "title": "Telegram entrega real autorizada",
+      "status": "BLOCKED_EXTERNAL",
+      "implementation_paths": [
+        "server/worker.ts"
+      ],
+      "test_command": null,
+      "evidence_path": "docs/RESULTADO_FINAL_INTEGRACION.md",
+      "notes": "Requiere autorización de envío, bot y chat; flujo completo aún requiere validación local."
+    },
+    {
+      "id": "PUSH01",
+      "title": "Push VAPID permisos y endpoint autenticado",
+      "status": "PASS_LOCAL",
+      "implementation_paths": [
+        "src/push.ts"
+      ],
+      "test_command": "npm run verify:ui-vertical; npm run verify:db; npm run verify:pwa",
+      "evidence_path": "docs/RESULTADO_FINAL_INTEGRACION.md",
+      "notes": "Alta y baja desde navegador con PushManager simulado y API real, validación de claves y SW; entrega e iPhone no verificados."
+    },
+    {
+      "id": "PUSH02",
+      "title": "Push en iPhone PWA cerrada",
+      "status": "BLOCKED_EXTERNAL",
+      "implementation_paths": [
+        "public/push-sw.js"
+      ],
+      "test_command": null,
+      "evidence_path": "docs/RESULTADO_FINAL_INTEGRACION.md",
+      "notes": "Requiere HTTPS autorizado, infraestructura y iPhone físico."
+    },
+    {
+      "id": "ICS01",
+      "title": "ICS VALARM y prueba importación",
+      "status": "BLOCKED_EXTERNAL",
+      "implementation_paths": [
+        "src/domain/core.ts"
+      ],
+      "test_command": "npm run test",
+      "evidence_path": "docs/RESULTADO_FINAL_INTEGRACION.md",
+      "notes": "Generación UTC/VALARM unitaria; importación iPhone pendiente."
+    },
+    {
+      "id": "PWA01",
+      "title": "PWA manifest scope basepath offline seguro",
+      "status": "PASS_LOCAL",
+      "implementation_paths": [
+        "vite.config.ts"
+      ],
+      "test_command": "npm run verify:pwa",
+      "evidence_path": "docs/RESULTADO_FINAL_INTEGRACION.md",
+      "notes": "Manifest, iconos, alcance bajo /luzradar/, actualización del SW y recarga offline con DEMO y caché obsoleta (fixture) probados; falta instalación física."
+    },
+    {
+      "id": "DEPLOY01",
+      "title": "Workflow Pages seguro preparado",
+      "status": "BLOCKED_EXTERNAL",
+      "implementation_paths": [
+        ".github/workflows/pages.yml"
+      ],
+      "test_command": null,
+      "evidence_path": "docs/RESULTADO_FINAL_INTEGRACION.md",
+      "notes": "Pages no creado: gate local aún no aprobado y backend alojado requiere acceso; workflow preparado no equivale a despliegue."
+    },
+    {
+      "id": "OPS01",
+      "title": "Doctor verify backup docs y no secretos",
+      "status": "PASS_LOCAL",
+      "implementation_paths": [
+        "scripts/verify-all.mjs"
+      ],
+      "test_command": "npm run doctor; npm run verify:security; npm run verify:backup",
+      "evidence_path": "docs/RESULTADO_FINAL_INTEGRACION.md",
+      "notes": "Doctor y auditoría estática; copia/restauración en bases PostgreSQL temporales con datos sintéticos, RLS y permisos; falta política y prueba de backup Cloud."
+    }
+  ]
+}

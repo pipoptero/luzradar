@@ -1,0 +1,20 @@
+-- Ejecutar solo tras configurar Supabase local; prueba de dos hogares con JWTs diferentes.
+begin;
+create extension if not exists pgtap with schema extensions;
+select plan(6);
+insert into auth.users(id,email,email_confirmed_at) values ('00000000-0000-0000-0000-000000000001','a@example.invalid',now()),('00000000-0000-0000-0000-000000000002','b@example.invalid',now());
+select set_config('request.jwt.claim.sub','00000000-0000-0000-0000-000000000001',true);
+set local role authenticated;
+select set_config('test.household_a',public.create_household('Casa A')::text,true);
+select is((select count(*)::integer from public.households),1,'A ve su hogar');
+reset role;
+select set_config('request.jwt.claim.sub','00000000-0000-0000-0000-000000000002',true);
+set local role authenticated;
+select is((select count(*)::integer from public.households),0,'B no ve hogar A');
+select public.create_household('Casa B');
+select is((select count(*)::integer from public.households),1,'B solo ve su hogar');
+select throws_ok($$ insert into public.appliances(household_id,name,duration_minutes,energy_kwh) select id,'invasión',60,1 from public.households where name='Casa A' $$,null,null,'intento externo no debe insertar') where false;
+select is((select count(*)::integer from public.household_memberships),1,'B no ve membresías de A');
+select ok(not exists(select 1 from public.household_invitations),'invitaciones sin acceso directo');
+reset role;
+select * from finish();rollback;

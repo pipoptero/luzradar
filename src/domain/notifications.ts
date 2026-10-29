@@ -1,0 +1,5 @@
+export type Delivery={key:string;userId:string;channel:'telegram'|'push';scheduledAt:string;state:'pending'|'accepted'|'failed'|'skipped';attempts:number};
+export interface Transport {send(delivery:Delivery):Promise<'accepted'|'transient'|'expired'>}
+export function enqueue(queue:Delivery[],item:Delivery):Delivery[]{return queue.some(x=>x.key===item.key&&x.userId===item.userId&&x.channel===item.channel)?queue:[...queue,item];}
+export async function deliver(queue:Delivery[],now:Date,enabled:(d:Delivery)=>boolean,transport:Transport):Promise<Delivery[]>{const result:Delivery[]=[];for(const item of queue){if(item.state!=='pending'||Date.parse(item.scheduledAt)>now.getTime()){result.push(item);continue;}if(!enabled(item)){result.push({...item,state:'skipped'});continue;}const response=await transport.send(item);result.push({...item,attempts:item.attempts+1,state:response==='accepted'?'accepted':response==='expired'||item.attempts>=2?'failed':'pending'});}return result;}
+export class FakeTransport implements Transport {calls=0;async send():Promise<'accepted'>{this.calls++;return 'accepted';}}

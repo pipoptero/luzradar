@@ -1,0 +1,27 @@
+import Decimal from 'npm:decimal.js@10.6.0';
+import type {Interval} from './core.ts';
+export type PvpcDay={date:string;intervals:Interval[];source:'REData';fetchedAt:string;revision:string|null;stale?:boolean};
+export type SourceResult={kind:'ready';day:PvpcDay}|{kind:'unavailable'|'error'|'blocked';reason:string};
+export interface PvpcProvider {getDay(date:string):Promise<SourceResult>}
+export function madridDate(t:number):string {const parts=new Intl.DateTimeFormat('en-CA',{timeZone:'Europe/Madrid',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date(t));return ['year','month','day'].map(k=>parts.find(p=>p.type===k)?.value).join('-');}
+export function addDays(date:string,n:number):string {const d=new Date(date+'T12:00:00Z');d.setUTCDate(d.getUTCDate()+n);return d.toISOString().slice(0,10);}
+function madridMidnight(date:string):number {const guess=Date.parse(date+'T00:00:00Z');for(let t=guess-3*3600000;t<=guess+3*3600000;t+=3600000){const parts=new Intl.DateTimeFormat('en-GB',{timeZone:'Europe/Madrid',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).formatToParts(t);if(madridDate(t)===date&&parts.find(p=>p.type==='hour')?.value==='00'&&parts.find(p=>p.type==='minute')?.value==='00')return t;}throw new Error('Fecha inválida');}
+type Redata={data?:{type?:string};included?:{id?:string;type?:string;attributes?:{title?:string;magnitude?:string;'last-update'?:string;values?:{datetime?:string;value?:number}[]}}[]};
+export function normalizeRedata(raw:unknown,date:string):SourceResult {try{if(!/^\d{4}-\d{2}-\d{2}$/.test(date))throw new Error('Fecha inválida');const payload=raw as Redata;const matches=payload?.included?.filter(x=>x.id==='1001'&&x.type==='PVPC'&&x.attributes?.title==='PVPC'&&x.attributes?.magnitude==='price')??[];if(matches.length===0)return {kind:'unavailable',reason:'No hay serie PVPC publicada'};if(matches.length!==1||payload.data?.type!=='Precios mercado peninsular en tiempo real')throw new Error('Serie o ámbito inesperado');const values=matches[0].attributes?.values;if(!Array.isArray(values))throw new Error('Valores ausentes');const start=madridMidnight(date),end=madridMidnight(addDays(date,1)),expected=(end-start)/3600000;if(![23,24,25].includes(expected)||values.length!==expected)throw new Error('Jornada incompleta');const intervals:Interval[]=values.map((v,i)=>{if(typeof v.value!=='number'||!Number.isFinite(v.value)||typeof v.datetime!=='string'||!/(Z|[+-]\d\d:\d\d)$/.test(v.datetime))throw new Error('Precio o fecha sin offset');const t=Date.parse(v.datetime);if(t!==start+i*3600000||madridDate(t)!==date)throw new Error('Hueco, duplicado o fecha incorrecta');const local=new Intl.DateTimeFormat('sv-SE',{timeZone:'Europe/Madrid',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit',hourCycle:'h23'}).format(t).replace(' ','T');if(v.datetime.slice(0,19)!==local)throw new Error('Offset no corresponde a Madrid');return {start:new Date(t).toISOString(),end:new Date(t+3600000).toISOString(),price:new Decimal(v.value).div(1000).toString()}});return {kind:'ready',day:{date,intervals,source:'REData',fetchedAt:new Date().toISOString(),revision:matches[0].attributes?.['last-update']??null}};}catch(e){return {kind:'error',reason:e instanceof Error?e.message:'Respuesta inválida'};}}
+export class RedataProvider implements PvpcProvider {
+ constructor(private timeoutMs=15000){}
+ async getDay(date:string):Promise<SourceResult>{
+  const cacheKey='luzradar-redata-v1:'+date;
+  let unavailable:SourceResult|null=null;
+  try {
+   const q=new URLSearchParams({start_date:`${date}T00:00`,end_date:`${date}T23:59`,time_trunc:'hour',geo_trunc:'electric_system',geo_limit:'peninsular',geo_ids:'8741'});
+   const r=await fetch(`https://apidatos.ree.es/es/datos/mercados/precios-mercados-tiempo-real?${q}`,{signal:AbortSignal.timeout(this.timeoutMs)});
+   if(r.ok){const raw=await r.json();const result=normalizeRedata(raw,date);if(result.kind==='ready'){try{localStorage.setItem(cacheKey,JSON.stringify({raw,fetchedAt:result.day.fetchedAt}))}catch{/* almacenamiento no disponible */}return result;}if(result.kind==='unavailable')unavailable=result;}
+   else if(r.status===404)unavailable={kind:'unavailable',reason:'Precios aún no publicados'};
+  }catch{/* intentar caché validada */}
+  try{const stored=JSON.parse(localStorage.getItem(cacheKey)??'null') as {raw:unknown;fetchedAt:string}|null;if(stored){const result=normalizeRedata(stored.raw,date);if(result.kind==='ready'&&Number.isFinite(Date.parse(stored.fetchedAt)))return {kind:'ready',day:{...result.day,fetchedAt:stored.fetchedAt,stale:true}}}}catch{/* ignorar caché corrupta */}
+  return unavailable??{kind:'error',reason:'No se pudo consultar Red Eléctrica ni recuperar una jornada completa'};
+ }
+}
+export class EsiosArchiveProvider implements PvpcProvider {async getDay():Promise<SourceResult>{return {kind:'blocked',reason:'Archivo ESIOS no habilitado como proveedor: su cronología requiere verificación independiente'}}}
+export function inspectEsios(raw:unknown):SourceResult {if(!raw||typeof raw!=='object'||!('PVPC' in raw)||!Array.isArray((raw as {PVPC:unknown}).PVPC))return {kind:'unavailable',reason:'Serie no publicada o respuesta inválida'};return {kind:'blocked',reason:'Archivo no habilitado como proveedor'};}

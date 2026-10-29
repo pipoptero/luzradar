@@ -1,0 +1,12 @@
+begin;
+create extension if not exists pgtap with schema extensions;
+set local search_path=public,extensions;
+select plan(3);
+set local role authenticated;
+select throws_ok($$select public.allow_telegram_webhook()$$,'42501',null,'cliente no invoca limitador');
+reset role;
+set local role service_role;
+select is(public.allow_telegram_webhook(),true,'servicio admite primer evento');
+do $$begin for i in 1..119 loop perform public.allow_telegram_webhook();end loop;end$$;
+select is(public.allow_telegram_webhook(),false,'servicio rechaza exceso por minuto');
+reset role;select * from finish();rollback;

@@ -1,0 +1,2 @@
+import {spawnSync} from 'node:child_process';
+const which=process.platform==='win32'?'where.exe':'which';const docker=spawnSync(which,['docker'],{stdio:'ignore'});if(docker.status!==0 || spawnSync('docker',['info'],{stdio:'ignore',shell:process.platform==='win32'}).status!==0){console.log('SKIPPED_ENV: Docker no disponible; RLS de Supabase no verificada.');process.exitCode=2}else{const cli=process.platform==='win32'?'npx.cmd':'npx';const r=spawnSync(cli,['supabase','test','db'],{stdio:'inherit',shell:process.platform==='win32'});process.exitCode=r.status??1}

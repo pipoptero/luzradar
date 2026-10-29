@@ -1,0 +1,4 @@
+import {timingSafeEqual} from 'node:crypto';
+type Update={message?:{text?:unknown;chat?:{id?:unknown;type?:unknown}}};
+export type TelegramHandlerDeps={secret:string;bind:(token:string,chat:string)=>Promise<boolean>;stop:(chat:string)=>Promise<void>};
+export async function processTelegram(secretHeader:string|undefined,body:unknown,deps:TelegramHandlerDeps):Promise<number>{const a=Buffer.from(secretHeader??''),b=Buffer.from(deps.secret);if(!b.length||a.length!==b.length||!timingSafeEqual(a,b))return 403;const update=body as Update;if(update?.message?.chat?.type!=='private')return 200;const id=update.message.chat.id,text=update.message.text;if((typeof id!=='number'&&typeof id!=='string')||typeof text!=='string')return 200;const chat=String(id);if(!/^-?\d{1,24}$/.test(chat))return 200;if(text==='/stop'){await deps.stop(chat);return 200}const m=/^\/start\s+([0-9a-f]{48})$/.exec(text);if(m)await deps.bind(m[1],chat);return 200;}

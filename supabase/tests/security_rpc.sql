@@ -1,0 +1,11 @@
+begin;
+create extension if not exists pgtap with schema extensions;
+set local search_path=public,extensions;
+select plan(6);
+select ok(not has_function_privilege('anon','public.create_household(text)','execute'),'anónimo no puede crear hogar');
+select ok(not has_function_privilege('anon','public.is_household_member(uuid)','execute'),'anónimo no invoca helper de miembro');
+select ok(not has_function_privilege('anon','public.is_household_owner(uuid)','execute'),'anónimo no invoca helper de owner');
+select ok(not has_function_privilege('anon','public.revoke_household_member(uuid,uuid)','execute'),'anónimo no invoca revocación');
+select ok(not has_function_privilege('authenticated','public.accept_household_invitation(text)','execute'),'ruta obsoleta no invocable');
+select ok(has_function_privilege('authenticated','public.accept_invite_code(text)','execute'),'ruta vigente disponible para autenticados');
+select * from finish();rollback;
