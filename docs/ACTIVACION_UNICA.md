@@ -1,6 +1,6 @@
 # Activación única — estado vigente 28/10/2026
 
-**NO COMPLETADO.** El gate local ha pasado. El proyecto Supabase Cloud dedicado tiene migraciones, funciones, claves de servidor y cron configurados; el job de ingesta y el recorrido API con cuentas sintéticas se han probado. Falta comprobar la ejecución programada, publicar Pages y probar OAuth, Telegram y Push en el iPhone. Google OAuth está configurado según el propietario, pero aún no se ha probado desde la aplicación. No se han enviado avisos reales.
+**NO COMPLETADO.** El gate local ha pasado y la aplicación está publicada en [GitHub Pages](https://pipoptero.github.io/luzradar/), con [código en GitHub](https://github.com/pipoptero/luzradar). Supabase Cloud tiene migraciones, funciones, claves de servidor y cron configurados; se han probado una ejecución programada, la ingesta y el recorrido API con cuentas sintéticas. OAuth llega a Google; faltan el acceso real de una persona, Telegram y Push en el iPhone. No se han enviado avisos reales.
 
 ## Uso local
 

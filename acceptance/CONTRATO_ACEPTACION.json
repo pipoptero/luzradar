@@ -17,9 +17,9 @@
       "implementation_paths": [
         "src/data/source.ts"
       ],
-      "test_command": "npm run doctor",
+      "test_command": "npm run verify:published",
       "evidence_path": "docs/RESULTADO_FINAL_INTEGRACION.md",
-      "notes": "REData HTTP 200 y contraste ESIOS del 28/10 documentado; no demuestra disponibilidad futura."
+      "notes": "REData real alojado el 29/10; 24 intervalos actuales y precio visible coincidente con la API; contraste ESIOS anterior documentado."
     },
     {
       "id": "PVPC02",
@@ -90,46 +90,46 @@
     {
       "id": "AUTH01",
       "title": "Supabase Auth login/logout real",
-      "status": "PASS_LOCAL",
+      "status": "PASS_REAL",
       "implementation_paths": [
         "src/components-family.tsx"
       ],
-      "test_command": "npm run verify:vertical; npm run verify:recovery",
+      "test_command": "npm run verify:hosted; npm run verify:recovery",
       "evidence_path": "docs/RESULTADO_FINAL_INTEGRACION.md",
-      "notes": "Auth/API real local y recuperación desde navegador con Mailpit local; OAuth y proveedor alojados aún no verificados."
+      "notes": "Login Auth alojado con cuentas sintéticas y recuperación en Mailpit local; OAuth inicia redirección a Google, falta acceso de persona real."
     },
     {
       "id": "HOME01",
       "title": "Dos miembros mismo hogar sincronizados",
-      "status": "PASS_LOCAL",
+      "status": "PASS_REAL",
       "implementation_paths": [
         "src/components-family.tsx"
       ],
-      "test_command": "npm run verify:ui-vertical",
+      "test_command": "npm run verify:hosted; npm run verify:ui-vertical",
       "evidence_path": "docs/RESULTADO_FINAL_INTEGRACION.md",
-      "notes": "A invita a B; comparten aparato y confirmación, C aislado, con navegador y Supabase Local."
+      "notes": "A/B alojados comparten aparato y confirmación por API; sincronización de navegador verificada en Supabase Local."
     },
     {
       "id": "HOME02",
       "title": "Invitación opaca expirable y permisos",
-      "status": "PASS_LOCAL",
+      "status": "PASS_REAL",
       "implementation_paths": [
         "supabase/migrations/202610280004_family_integration.sql"
       ],
-      "test_command": "npm run verify:db; npm run verify:vertical",
+      "test_command": "npm run verify:hosted; npm run verify:db",
       "evidence_path": "docs/RESULTADO_FINAL_INTEGRACION.md",
-      "notes": "Invitaciones de un uso, caducidad y permisos sobre PostgreSQL y Auth/API local."
+      "notes": "Invitación de un uso y revocación en Auth/API alojados; caducidad y permisos adicionales en PostgreSQL local."
     },
     {
       "id": "SEC01",
       "title": "Aislamiento RLS de dos hogares",
-      "status": "PASS_LOCAL",
+      "status": "PASS_REAL",
       "implementation_paths": [
         "supabase/tests/family_rls.sql"
       ],
-      "test_command": "npm run verify:db; npm run verify:vertical",
+      "test_command": "npm run verify:hosted; npm run verify:db",
       "evidence_path": "docs/RESULTADO_FINAL_INTEGRACION.md",
-      "notes": "PostgreSQL local comprueba RLS y permisos de todas las tablas; C no accede ni escribe H1 y las RPC críticas rechazan sus intentos."
+      "notes": "En proyecto alojado C no lee/escribe H1 y se rechazan RPC críticas; RLS de todas las tablas y permisos probados en local y catálogo alojado."
     },
     {
       "id": "SEC02",
@@ -138,9 +138,9 @@
       "implementation_paths": [
         "supabase/tests/access_rls.sql"
       ],
-      "test_command": "npm run verify:db; npm run verify:vertical",
+      "test_command": "npm run verify:db; npm run verify:hosted",
       "evidence_path": "docs/RESULTADO_FINAL_INTEGRACION.md",
-      "notes": "Grants de tablas y funciones privilegiadas revisados en catálogo, anónimo bloqueado, suplantación y escalada rechazadas; sin prueba alojada."
+      "notes": "Grants de tablas y funciones privilegiadas revisados, anónimo bloqueado y escalada rechazada; no es auditoría exhaustiva de producción."
     },
     {
       "id": "SYNC01",
@@ -217,7 +217,7 @@
       ],
       "test_command": null,
       "evidence_path": "docs/RESULTADO_FINAL_INTEGRACION.md",
-      "notes": "Requiere autorización de envío, bot y chat; flujo completo aún requiere validación local."
+      "notes": "Bot exclusivo y chat de prueba aún pendientes de confirmación; webhook desplegado, sin entrega real."
     },
     {
       "id": "PUSH01",
@@ -239,7 +239,7 @@
       ],
       "test_command": null,
       "evidence_path": "docs/RESULTADO_FINAL_INTEGRACION.md",
-      "notes": "Requiere HTTPS autorizado, infraestructura y iPhone físico."
+      "notes": "VAPID configurado en servidor y clave pública en frontend; falta instalación y recepción física en iPhone."
     },
     {
       "id": "ICS01",
@@ -266,13 +266,13 @@
     {
       "id": "DEPLOY01",
       "title": "Workflow Pages seguro preparado",
-      "status": "BLOCKED_EXTERNAL",
+      "status": "PASS_REAL",
       "implementation_paths": [
         ".github/workflows/pages.yml"
       ],
-      "test_command": null,
+      "test_command": "npm run verify:published",
       "evidence_path": "docs/RESULTADO_FINAL_INTEGRACION.md",
-      "notes": "Pages no creado: gate local aún no aprobado y backend alojado requiere acceso; workflow preparado no equivale a despliegue."
+      "notes": "GitHub Actions y Pages publicados; Chromium/WebKit validan URL, precio alojado, manifest, iconos y recarga."
     },
     {
       "id": "OPS01",

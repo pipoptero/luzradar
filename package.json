@@ -33,7 +33,8 @@
     "verify:backup": "tsx scripts/verify-backup.ts",
     "verify:corrections": "tsx scripts/verify-corrections.ts",
     "verify:net-ingest": "tsx scripts/verify-net-ingest.ts",
-    "verify:hosted": "tsx scripts/verify-hosted.ts"
+    "verify:hosted": "tsx scripts/verify-hosted.ts",
+    "verify:published": "tsx scripts/verify-published.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.118.0",
