@@ -25,6 +25,7 @@ export class FamilyRepository {
  async removePush(endpoint:string){return this.client.rpc('remove_push_subscription',{endpoint_value:endpoint});}
  async issueTelegram(householdId:string){return this.client.rpc('issue_telegram_nonce',{target:householdId});}
  async unlinkTelegram(householdId:string){return this.client.rpc('unlink_telegram',{target:householdId});}
+ async requestNotificationTest(householdId:string,channel:'push'|'telegram'){return this.client.rpc('request_notification_test',{target:householdId,channel_name:channel});}
  async preferences(householdId:string,userId:string){return this.client.from('notification_preferences').select('preferences').eq('household_id',householdId).eq('user_id',userId).maybeSingle();}
  async savePreferences(householdId:string,userId:string,preferences:Record<string,unknown>){return this.client.from('notification_preferences').upsert({household_id:householdId,user_id:userId,preferences},{onConflict:'household_id,user_id'});}
  async updateAppliance(id:string,minutes:number,energy:number){return this.client.from('appliances').update({duration_minutes:minutes,energy_kwh:energy}).eq('id',id);}
